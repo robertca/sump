@@ -21,7 +21,8 @@ class RangeSensor:
     # Returns: Distance in meters, or None if an error occurred
     def measureSingleDistance(self):
         GPIO.output(self.GPIO_TRIG, False)
-        time.sleep(0.5)
+        # Wait a bit for settle
+        time.sleep(1.0)
 
         # Trigger the Pulse Wave
         GPIO.output(self.GPIO_TRIG, True)
@@ -29,7 +30,7 @@ class RangeSensor:
         GPIO.output(self.GPIO_TRIG, False)
 
         # We'll be receiving Low (0) while the sensor is transmitting
-        run_time = time.time() + 4 # seconds
+        run_time = time.time() + 8 # seconds
         start_time = None
         end_time = None
 
@@ -42,7 +43,7 @@ class RangeSensor:
             if not GPIO.input(self.GPIO_ECHO):
                 end_time = time.time()
                 break
-            
+
         # Something went wrong and we didn't get any valid measurements
         if start_time == None or end_time == None or end_time <= start_time:
             return None
@@ -55,8 +56,9 @@ class RangeSensor:
         totalDistance = 0
         successRuns = 0.001
 
-        for i in range(0, max(0, runs)):
+        for _ in range(0, max(0, runs)):
             distance = self.measureSingleDistance()
+
             if distance != None:
                 totalDistance += distance
                 successRuns += 1
